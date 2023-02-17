@@ -1,0 +1,363 @@
+﻿// NamingRig.mel - MEL Script
+
+
+// DESCRIPTION:
+// Tool for quick naming joint, ctrl, etc. Contain
+//     - Adding "_end" before prefix to specific parts
+//     - Finger joints hierarchy problem fixed (Select only the first parent joint to name)
+
+// REQUIRE: Nothing
+// AUTHORS: BulinThira - Github
+
+proc NamingRig(){
+if (`window -q -ex "NR_window"`){
+deleteUI -window "NR_window";
+}
+window -t "Naming Rig" "NR_window";
+
+columnLayout -adj true;
+
+//PREFIX
+frameLayout - label "\tPrefix:";
+gridLayout - numberOfColumns 3 -cellWidth 90 -cellHeight 25;
+  radioCollection "prefix_radioBut";
+  radioButton -label "C" "cBut";
+  radioButton -label "L" "lBut";
+  radioButton -label "R" "rBut";
+  setParent ..;
+  
+ //SUFFIX
+frameLayout - label "\tSuffix:";
+gridLayout - numberOfColumns 4 -cellWidth 65 -cellHeight 25;
+  radioCollection "suffix_radioBut";
+  radioButton -label "ctrl" "ctrlBut";
+  radioButton -label "jnt" "jntBut";
+  radioButton -label "grp" "grpBut";
+  radioButton -label "pv" "pvBut";
+  setParent ..;
+
+//NAMING
+frameLayout - label "Rename";
+gridLayout - numberOfColumns 3 -cellWidth 90 -cellHeight 25;
+  text -label "\tName:  " "naming_text";
+  button -label "head" -h 30 -c doHead "head button";
+  button -label "neck" -h 30 -c doNeck "neck button";
+  
+  button -label "jaw" -h 30 -c doJaw "jaw button";
+  button -label "chest" -h 30 -c doChest "chest button";
+  button -label "back" -h 30 -c doBack "back button";
+  
+  button -label "clavicle" -h 30 -c doClavicle "clavicle button";
+  button -label "shoulder" -h 30 -c doShoulder "shoulder button";
+  button -label "arm" -h 30 -c doArm "arm button";
+  
+  button -label "hand" -h 30 -c doHand "han d button";
+  button -label "pelvis" -h 30 -c doPelvis "pelvis button";
+  button -label "knee" -h 30 -c doKnee "knee button";
+  
+  button -label "foot" -h 30 -c doFoot "foot button";
+  button -label "toe" -h 30 -c doToe "toe button";
+  button -label "thumb" -h 30 -c doThumbFinger "thumb button";
+  
+  button -label "index" -h 30 -c doIndexFinger "index button";
+  button -label "mid" -h 30 -c doMidFinger "mid button";
+  button -label "ring" -h 30 -c doRingFinger "ring button";
+  
+  button -label "pinky" -h 30 -c doPinkyFinger "pinky button";
+  setParent ..;
+  
+
+
+
+showWindow "NR_window";
+window -e -wh 270 300 "NR_window";
+}
+
+
+//-----------------------------//
+
+
+proc string doPreSuf(int $PS){
+    $prebutcall = `radioCollection -q -sl "prefix_radioBut"`;
+    $sufbutcall = `radioCollection -q -sl "suffix_radioBut"`;
+    string $prefix_add;
+    string $suffix_add;
+    
+    if($PS == 1){
+        if($prebutcall == "cBut"){
+        $prefix_add = "C";
+        }
+        else if($prebutcall == "lBut"){
+            $prefix_add = "L";
+        }
+        else if($prebutcall == "rBut"){
+            $prefix_add = "R";
+        }
+        return $prefix_add;
+    }
+    
+    else if($PS == 2){
+        if($sufbutcall == "ctrlBut"){
+        $suffix_add = "ctrl";
+        }
+        else if($sufbutcall == "jntBut"){
+            $suffix_add = "jnt";
+        }
+        else if($sufbutcall == "grpBut"){
+            $suffix_add = "grp";
+        }
+        else if($sufbutcall == "pvBut"){
+            $suffix_add = "pv";
+        }
+        return $suffix_add;
+    }
+    
+    
+}
+
+// Procedure for reversing listRelative order //
+proc string reverseOder(int $number, string $grpname){
+    $obj_sel = `listRelatives -ad -f $grpname`;
+    $rev = size($obj_sel);
+    $revnum = (($rev-$number)-1)+1;
+
+    return $revnum;
+}
+
+// Procedure for checking hierarchy and adding "_end" before prefix //
+proc string hieraCheck(int $endtag){
+    $sels = `ls -sl`;
+    $tag = "";
+
+    if($endtag == size($sels)){
+        $tag = "_end";
+    }
+    else{
+        $tag = "";
+    }
+    return $tag;
+}
+
+
+proc doHead(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "head" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "head" + ($i+1) + hieraCheck($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doNeck(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "neck" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "neck" + ($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doJaw(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "jaw" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "jaw" + ($i+1) + hieraCheck($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doChest(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "chest" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "chest" + ($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doBack(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "back" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "back" + ($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doClavicle(){
+    $sels = `ls -sl`;
+    $donewname = doPreSuf(1) + "_" + "clavicle" + "_" + doPreSuf(2);
+    rename $sels $donewname;
+}
+
+proc doShoulder(){
+    $sels = `ls -sl`;
+    $donewname = doPreSuf(1) + "_" + "shoulder" + "_" + doPreSuf(2);
+    rename $sels $donewname;
+}
+
+proc doArm(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "arm" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "arm" + ($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doHand(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "hand" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "hand" + ($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doPelvis(){
+    $sels = `ls -sl`;
+    $donewname = doPreSuf(1) + "_" + "back" + "_" + doPreSuf(2);
+    rename $sels $donewname;
+}
+
+proc doKnee(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "knee" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "knee" + ($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doFoot(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "foot" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "foot" + ($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doToe(){
+    $sels = `ls -sl`;
+    if (size($sels) == 1 ){
+        $donewname = doPreSuf(1) + "_" + "toe" + "_" + doPreSuf(2);
+        rename $sels $donewname;
+    }
+    else{
+        for($i=0; $i<size($sels); $i++){
+            $donewname = doPreSuf(1) + "_" + "toe" + ($i+1) + hieraCheck($i+1) + "_" + doPreSuf(2);
+            rename $sels[$i] $donewname;
+        }
+    }
+}
+
+proc doThumbFinger(){
+    $init_sl = `ls -sl`;
+    group -n "thumb_grp" $init_sl;
+    
+    $objs = `listRelatives -ad -f mid_grp`;
+    for($a=0; $a<size($objs); $a++){
+        $donewname = (doPreSuf(1) + "_" + "thumb"+ reverseOder($a,"thumb_grp") + hieraCheck($a+1) + "_" + doPreSuf(2));
+        rename $objs[$a] $donewname;
+    }
+    ungroup thumb_grp;
+}
+
+proc doIndexFinger(){
+    $init_sl = `ls -sl`;
+    group -n "index_grp" $init_sl;
+    
+    $objs = `listRelatives -ad -f index_grp`;
+    for($a=0; $a<size($objs); $a++){
+        $donewname = (doPreSuf(1) + "_" + "index"+ reverseOder($a,"index_grp") + hieraCheck($a+1) + "_" + doPreSuf(2));
+        rename $objs[$a] $donewname;
+    }
+    ungroup index_grp;
+}
+
+proc doMidFinger(){
+    $init_sl = `ls -sl`;
+    group -n "mid_grp" $init_sl;
+    
+    $objs = `listRelatives -ad -f mid_grp`;
+    for($a=0; $a<size($objs); $a++){
+        $donewname = (doPreSuf(1) + "_" + "mid"+ reverseOder($a,"mid_grp") + hieraCheck($a+1) + "_" + doPreSuf(2));
+        rename $objs[$a] $donewname;
+    }
+    ungroup mid_grp;
+}
+
+proc doRingFinger(){
+    $init_sl = `ls -sl`;
+    group -n "ring_grp" $init_sl;
+    
+    $objs = `listRelatives -ad -f ring_grp`;
+    for($a=0; $a<size($objs); $a++){
+        $donewname = (doPreSuf(1) + "_" + "ring"+ reverseOder($a,"ring_grp") + hieraCheck($a+1) + "_" + doPreSuf(2));
+        rename $objs[$a] $donewname;
+    }
+    ungroup ring_grp;
+}
+
+proc doPinkyFinger(){
+    $init_sl = `ls -sl`;
+    group -n "pinky_grp" $init_sl;
+    
+    $objs = `listRelatives -ad -f pinky_grp`;
+    for($a=0; $a<size($objs); $a++){
+        $donewname = (doPreSuf(1) + "_" + "pinky"+ reverseOder($a,"pinky_grp") + hieraCheck($a+1) + "_" + doPreSuf(2));
+        rename $objs[$a] $donewname;
+    }
+    ungroup pinky_grp;
+}
+
+
+
+
+NamingRig;
